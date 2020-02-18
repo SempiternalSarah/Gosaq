@@ -1,0 +1,50 @@
+Ra = [1, 2];
+Rd = [1, 2];
+Pa = [-2, -3];
+Pd = [-3, -2];
+lam = 1.5;
+K = 1;
+
+
+r = 3.1;
+
+
+
+objf = @(y)obj(y, Ra, Rd, Pa, Pd, lam, r);
+boundsf = @(y)bounds(y, Ra, Pa, lam, K);
+
+x = fmincon(objf, [.9,.9], [],[],[],[],[],[], boundsf)
+
+function [fx = obj(y, Ra,Rd,Pa,Pd,lam,r)
+    fx = 0;
+    targets = length(y);
+    for i = 1:targets
+        fx = fx + (y(i) * exp(lam * Ra(i)) * (r - Pd(i)));
+        fx = fx + ((((Rd(i) - Pd(i)) * exp(lam * Ra(i))) / (lam * (Ra(i) - Pa(i)))) * (y(i) * log(y(i))));
+    end
+    gradx = 0;
+    for i = 1:targets
+        gradx = gradx + (exp(lam * Ra(i)) * (r - Pd(i)));
+        gradx = gradx + ((((Rd(i) - Pd(i)) * exp(lam * Ra(i))) / (lam * (Ra(i) - Pa(i)))) * (log(y(i))));
+        gradx = gradx + (((Rd(i) - Pd(i)) * exp(lam * Ra(i))) / (lam * (Ra(i) - Pa(i))))
+    end
+end
+
+function [c,ceq] = bounds(y, Ra, Pa, lam, K)   
+    targets = length(y);
+    c(1) = -K;
+    for i = 1:targets
+        c(1) = c(1) + (log(y(i))/(lam * (Pa(i) - Ra(i))));
+    end
+    for i = 1:targets
+        c(i + 1) = y(i) - 1;
+    end
+    for i = 1:targets
+        c(1 + targets + i) = -y(i) + exp(lam * (Pa(i) - Ra(i)));
+    end
+    ceq = [];
+end
+    
+    
+
+
